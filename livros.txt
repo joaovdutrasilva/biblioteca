@@ -1,0 +1,2 @@
+livro|joao|2000|1
+java|joao|2022|1
