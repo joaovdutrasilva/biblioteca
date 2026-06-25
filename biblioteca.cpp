@@ -7,8 +7,10 @@ using namespace std;
 void finalizarPrograma() {
     FILE *arquivo = fopen("livros.txt", "a");
     FILE *arquivoEmprestados = fopen("livros_emprestados.txt", "r");
+    FILE *arquivoDevolvidos = fopen("livros_devolvidos.txt", "r");
+    FILE *arquivoRemovidos = fopen("livros_removidos.txt", "r");
 
-    if (arquivoEmprestados == NULL || arquivo == NULL) {
+    if (arquivoEmprestados == NULL || arquivo == NULL || arquivoDevolvidos == NULL || arquivoRemovidos == NULL) {
         return;
     }
 
@@ -20,8 +22,12 @@ void finalizarPrograma() {
 
     fclose(arquivo);
     fclose(arquivoEmprestados);
+    fclose(arquivoDevolvidos);
+    fclose(arquivoRemovidos);
 
     remove("livros_emprestados.txt");
+    remove("livros_devolvidos.txt");
+    remove("livros_removidos.txt");
 }
 
 
@@ -56,7 +62,7 @@ void devolverLivro() {
     }
 
     while (fgets(linha, sizeof(linha), arquivo) != NULL) {
-        sscanf(linha, "%99[^|]|%99[^|]|%19[^|]|%d", nomeLivro, autorLivro, ano, &disponivel);
+        sscanf(linha, "%99[^|]|%99[^|]|%19[^|]|%d", nomeLivro, autorLivro, anoLivro, &disponivel);
 
         if (nome == nomeLivro && autor == autorLivro && ano == anoLivro) {
             cout << "____________________________________________" << endl << endl;
