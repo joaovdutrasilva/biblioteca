@@ -4,11 +4,189 @@
 #include <cstring>
 
 using namespace std;
+void finalizarPrograma() {
+    FILE *arquivo = fopen("livros.txt", "a");
+    FILE *arquivoEmprestados = fopen("livros_emprestados.txt", "r");
+
+    if (arquivoEmprestados == NULL || arquivo == NULL) {
+        return;
+    }
+
+    char linha[100];
+
+    while (fgets(linha, sizeof(linha), arquivoEmprestados) != NULL) {
+        fputs(linha, arquivo);
+    }
+
+    fclose(arquivo);
+    fclose(arquivoEmprestados);
+
+    remove("livros_emprestados.txt");
+}
+
+
+void devolverLivro() {
+    FILE *arquivo = fopen("livros_emprestados.txt", "r");
+    FILE *arquivoTemp = fopen("temp.txt", "w");
+    FILE *arquivoDevolvidos = fopen("livros_devolvidos.txt", "a");
+    string nome;
+    string autor;
+    char linha[100];
+    char nomeLivro[100];
+    char autorLivro[100];
+    char ano[20];
+    int disponivel;
+    bool encontrado = false;
+
+    cout << "Digite o nome do livro que deseja devolver: ";
+    cin.ignore();
+    getline(cin, nome);
+    cout << "Digite o nome do autor do livro que deseja devolver: ";
+    getline(cin, autor);
+
+    if (arquivo == NULL) {
+        cout << endl << "Erro ao abrir o arquivo!" << endl;
+        fclose(arquivoTemp);
+        fclose(arquivo);
+        remove("temp.txt");
+        return;
+    }
+
+    while (fgets(linha, sizeof(linha), arquivo) != NULL) {
+        sscanf(linha, "%99[^|]|%99[^|]|%19[^|]|%d", nomeLivro, autorLivro, ano, &disponivel);
+
+        if (nome == nomeLivro && autor == autorLivro) {
+            cout << "____________________________________________" << endl << endl;
+            cout << linha;
+            cout << "Livro devolvido com sucesso!" << endl;
+            cout << "____________________________________________" << endl;
+
+            encontrado = true;
+
+            disponivel = 1;
+
+            fprintf(arquivoTemp, "%s|%s|%s|%d\n", nomeLivro, autorLivro, ano, disponivel);
+            fprintf(arquivoDevolvidos, "%s|%s|%s|%d\n", nomeLivro, autorLivro, ano, disponivel);
+        } else {
+            fputs(linha, arquivoTemp);
+        }
+    }
+
+    if (!encontrado) {
+        cout << "Livro nao encontrado." << endl;
+    }
+
+    fclose(arquivo);
+    fclose(arquivoTemp);
+    fclose(arquivoDevolvidos);
+
+    remove("livros_emprestados.txt");
+    rename("temp.txt", "livros_emprestados.txt");
+}
+
+void removerLivro() {
+    cout << "____________________________________________" << endl;
+    cout << "Digite a senha de administrador: ";
+    string senha;
+    cin >> senha;
+
+    if (senha != "admin123") {
+        cout << "Senha incorreta!" << endl;
+        return;
+    }
+
+    FILE *arquivo = fopen("livros.txt", "r");
+    FILE *arquivoTemp = fopen("temp.txt", "w");
+    FILE *arquivorRemovidos = fopen("livros_removidos.txt", "a");
+    string nome;
+    string autor;
+    char linha[100];
+    char nomeLivro[100];
+    char autorLivro[100];
+    char ano[20];
+    int disponivel;
+    bool encontrado = false;
+
+    cout << "Digite o nome do livro que deseja remover: ";
+    cin.ignore();
+    getline(cin, nome);
+    cout << "Digite o nome do autor do livro que deseja remover: ";
+    getline(cin, autor);
+
+    if (arquivo == NULL) {
+        cout << endl << "Erro ao abrir o arquivo!" << endl;
+        fclose(arquivoTemp);
+        fclose(arquivo);
+        remove("temp.txt");
+        return;
+    }
+
+    while (fgets(linha, sizeof(linha), arquivo) != NULL) {
+        sscanf(linha, "%99[^|]|%99[^|]|%19[^|]|%d", nomeLivro, autorLivro, ano, &disponivel);
+
+        if (nome == nomeLivro && autor == autorLivro) {
+            if (disponivel == 0) {
+                cout << "Livro emprestado, nao pode ser removido." << endl;
+                fclose(arquivo);
+                fclose(arquivoTemp);
+                remove("temp.txt");
+                return;
+            }
+            cout << "____________________________________________" << endl << endl;
+            cout << linha;
+            cout << "Livro removido com sucesso!" << endl;
+            cout << "____________________________________________" << endl;
+
+            encontrado = true;
+
+            fprintf(arquivorRemovidos, "%s|%s|%s|%d\n", nomeLivro, autorLivro, ano, disponivel);
+        } else {
+            fputs(linha, arquivoTemp);
+        }
+    }
+
+    if (!encontrado) {
+        cout << "Livro nao encontrado." << endl;
+    }
+
+    fclose(arquivo);
+    fclose(arquivoTemp);
+    fclose(arquivorRemovidos);
+
+    remove("livros.txt");
+    rename("temp.txt", "livros.txt");
+}
+
+void buscarLivrosEmprestados() {
+    FILE *arquivo = fopen("livros_emprestados.txt", "r");
+    
+    char linha[100];
+
+    if (arquivo == NULL) {
+        cout << "____________________________________________" << endl;
+        cout << "Nao foi possivel abrir o arquivo." << endl;
+        cout << "____________________________________________" << endl;
+        return;
+    }
+
+    cout << "____________________________________________" << endl;
+    cout << endl << "LIVROS EMPRESTADOS" << endl;
+
+    while (fgets(linha, sizeof(linha), arquivo)) {
+        cout << "____________________________________________" << endl << endl;
+        cout << linha << endl;
+    }
+
+    cout << "____________________________________________" << endl << endl;
+
+    fclose(arquivo);
+}
 
 void selecionarLivro() {
 
     FILE *arquivo = fopen("livros.txt", "r");
     FILE *arquivoTemp = fopen("temp.txt", "w");
+    FILE *arquivoEmprestados = fopen("livros_emprestados.txt", "a");
     string nome;
     string autor;
     char linha[100];
@@ -52,6 +230,7 @@ void selecionarLivro() {
         encontrado = true;
 
         fprintf(arquivoTemp, "%s|%s|%s|%d\n", nomeLivro, autorLivro, ano, disponivel);
+        fprintf(arquivoEmprestados, "%s|%s|%s|%d\n", nomeLivro, autorLivro, ano, disponivel);
 
         } else {
             fputs(linha, arquivoTemp);
@@ -64,15 +243,11 @@ void selecionarLivro() {
 
     fclose(arquivo);
     fclose(arquivoTemp);
+    fclose(arquivoEmprestados);
 
     remove("livros.txt");
     rename("temp.txt", "livros.txt");
 
-    if (remove("livros.txt") == 0 ) {
-        cout << "Arquivo removido com sucesso." << endl;
-    } else {
-        cout << "Erro ao remover o arquivo." << endl;
-    }
 }
 
 void buscarLivroPorDisponibilidade() {
@@ -228,6 +403,16 @@ void listarlivros() {
 }
 
 void cadastrarLivro() {
+    cout << "____________________________________________" << endl;
+    cout << "Digite a senha de administrador: ";
+    string senha;
+    cin >> senha;
+
+    if (senha != "admin123") {
+        cout << "Senha incorreta!" << endl;
+        return;
+    }
+
     FILE *arquivo = fopen("livros.txt", "a");
 
     if (arquivo == NULL) {
@@ -265,8 +450,10 @@ int main() {
         cout << "3. Buscar livro por nome" << endl;
         cout << "4. Buscar livro por autor" << endl;
         cout << "5. Buscar livros disponiveis" << endl;
-        cout << "6. Devolver livro" << endl;
-        cout << "7. Remover livro" << endl;
+        cout << "6. Buscar livros emprestados" << endl;
+        cout << "7. Devolver livro" << endl;
+        cout << "8. Remover livro" << endl;
+        cout << "9. Sair" << endl;
         cout << "___________________________________________" << endl
              << endl;
 
@@ -288,7 +475,21 @@ int main() {
         case 5:
             buscarLivroPorDisponibilidade();
             break;
+        case 6:
+            buscarLivrosEmprestados();
+            break;
+        case 7:
+            devolverLivro();
+            break;
+        case 8:
+            removerLivro();
+            break;
+        case 9:
+            cout << "Saindo do programa..." << endl;
+            exit(0);
+            break;
         default:
+            cout << "Opção inválida!" << endl;
             break;
         }
     }
